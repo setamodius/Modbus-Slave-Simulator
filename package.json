@@ -1,0 +1,31 @@
+{
+  "name": "modbus-simulator",
+  "version": "1.0.0",
+  "description": "Modbus TCP Simulator with Web Interface",
+  "main": "index.js",
+  "bin": "index.js",
+  "pkg": {
+    "assets": [
+      "public/**/*"
+    ],
+    "targets": [
+      "node16-win-x64"
+    ],
+    "outputPath": "dist"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "build": "pkg ."
+  },
+  "dependencies": {
+    "jsmodbus": "^4.0.6",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "chalk": "^4.1.2",
+    "open": "^8.4.2",
+    "net": "^1.0.2"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  }
+} 

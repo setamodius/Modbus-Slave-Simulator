@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modbus TCP Simülatörü</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Dark mode değişkenleri */
+        :root {
+            --bg-color: #f5f5f5;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --hover-bg: #f8f9fa;
+            --primary-color: #2196F3;
+            --secondary-bg: #e8f5e9;
+            --panel-bg: #fff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --text-color: #ffffff;
+            --border-color: #404040;
+            --hover-bg: #3d3d3d;
+            --primary-color: #64b5f6;
+            --secondary-bg: #263238;
+            --panel-bg: #333333;
+        }
+
+        /* Mevcut stilleri güncelle */
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: var(--container-bg);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .status {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-color);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+        }
+
+        [data-theme="dark"] .status {
+            background-color: var(--panel-bg);
+        }
+
+        [data-theme="dark"] .status-dot {
+            box-shadow: 0 0 12px rgba(76, 175, 80, 0.8);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .register {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            min-width: 0;
+        }
+
+        .register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background-color: var(--hover-bg);
+        }
+
+        .register-label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .register input[type="number"] {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+            font-size: 12px;
+            background-color: var(--panel-bg);
+            color: var(--text-color);
+        }
+
+        .register input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin: 5px;
+        }
+
+        .info-panel {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #1976D2;
+        }
+
+        .info-panel ul {
+            margin: 3px 0;
+            padding-left: 15px;
+        }
+
+        .control-panel {
+            background-color: var(--panel-bg);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid var(--border-color);
+        }
+
+        .range-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .range-input {
+            width: 70px;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .apply-button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .apply-button:hover {
+            background-color: #1976D2;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .preset-button {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+            color: var(--text-color);
+        }
+
+        .preset-button:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .preset-button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .type-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .type-button {
+            flex: 1;
+            padding: 8px 5px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--panel-bg);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-color);
+        }
+
+        .type-button:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .type-button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .boolean-input {
+            width: 20px;
+            height: 20px;
+            margin: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Chrome için number input ok butonlarını gizle */
+        .register input[type="number"]::-webkit-inner-spin-button,
+        .register input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox için number input ok butonlarını gizle */
+        .register input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .clients-panel {
+            background-color: var(--panel-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .clients-panel h3 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+
+        .clients-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .clients-table th,
+        .clients-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .clients-table th {
+            background-color: var(--hover-bg);
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .clients-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .no-clients {
+            text-align: center;
+            color: #666;
+            padding: 10px;
+            font-style: italic;
+        }
+
+        /* Dark mode toggle butonu */
+        .theme-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-switch-button {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background-color: var(--panel-bg);
+            color: var(--text-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .theme-switch-button:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .theme-switch-button i {
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-switch">
+        <button class="theme-switch-button" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i>
+            <span>Dark Mode</span>
+        </button>
+    </div>
+    <div class="container">
+        <h1>Modbus TCP Simülatörü</h1>
+        
+        <div class="status">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>Durum: <strong id="status">Çalışıyor</strong></span>
+            </div>
+            <div>Port: 502</div>
+        </div>
+
+        <div class="clients-panel">
+            <h3>Bağlı Modbus İstemciler</h3>
+            <table class="clients-table">
+                <thead>
+                    <tr>
+                        <th>IP Adresi</th>
+                        <th>Slave ID</th>
+                        <th>Son Aktivite</th>
+                    </tr>
+                </thead>
+                <tbody id="clientsList">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="control-panel">
+            <div class="type-selector">
+                <button class="type-button active" onclick="setType('holding')">Holding Registers (4xxxx)</button>
+                <button class="type-button" onclick="setType('input')">Input Registers (3xxxx)</button>
+                <button class="type-button" onclick="setType('coils')">Coils (0xxxx)</button>
+                <button class="type-button" onclick="setType('discrete')">Discrete Inputs (1xxxx)</button>
+            </div>
+            <div class="range-selector">
+                <label>Başlangıç:</label>
+                <input type="number" id="startRegister" class="range-input" value="0" min="0" max="65535">
+                <label>Bitiş:</label>
+                <input type="number" id="endRegister" class="range-input" value="99" min="0" max="65535">
+                <button class="apply-button" onclick="updateRange()">Uygula</button>
+            </div>
+            <div class="preset-buttons">
+                <button class="preset-button active" onclick="setPreset(0, 99)">0-99</button>
+                <button class="preset-button" onclick="setPreset(100, 199)">100-199</button>
+                <button class="preset-button" onclick="setPreset(200, 299)">200-299</button>
+                <button class="preset-button" onclick="setPreset(1000, 1099)">1000-1099</button>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            💡 Tüm register değerlerini değiştirebilirsiniz:
+            <ul>
+                <li>Coils ve Discrete Inputs için checkbox kullanın</li>
+                <li>Input ve Holding Registers için 0-65535 arası değer girin</li>
+            </ul>
+        </div>
+
+        <div class="grid" id="registers"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const registersDiv = document.getElementById('registers');
+        let currentStart = 0;
+        let currentEnd = 99;
+        let currentType = 'holding';
+
+        function createRegisters(start, end) {
+            const registersDiv = document.getElementById('registers');
+            registersDiv.innerHTML = '';
+            
+            for (let i = start; i <= end; i++) {
+                const div = document.createElement('div');
+                div.className = 'register';
+                
+                if (currentType === 'coils' || currentType === 'discrete') {
+                    div.innerHTML = `
+                        <div class="register-label">${currentType === 'coils' ? 'Coil' : 'Discrete Input'} ${i}</div>
+                        <input type="checkbox" id="reg${i}"
+                            onchange="updateRegister(${i}, this.checked)">
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <div class="register-label">${currentType === 'holding' ? 'Holding' : 'Input'} Register ${i}</div>
+                        <input type="number" id="reg${i}" value="0" min="0" max="65535"
+                            onchange="updateRegister(${i}, this.value)">
+                    `;
+                }
+                registersDiv.appendChild(div);
+            }
+            
+            // Mevcut değerleri yükle
+            fetch(`/api/registers/${currentType}`)
+                .then(response => response.json())
+                .then(registers => {
+                    for (let i = start; i <= end; i++) {
+                        const input = document.getElementById(`reg${i}`);
+                        if (input) {
+                            if (currentType === 'coils' || currentType === 'discrete') {
+                                input.checked = registers[i];
+                            } else {
+                                input.value = registers[i] || 0;
+                            }
+                        }
+                    }
+                });
+        }
+
+        function updateRange() {
+            const start = parseInt(document.getElementById('startRegister').value);
+            const end = parseInt(document.getElementById('endRegister').value);
+            
+            if (start >= 0 && end >= start && end <= 65535) {
+                currentStart = start;
+                currentEnd = end;
+                createRegisters(start, end);
+                updatePresetButtons(start, end);
+            } else {
+                alert('Geçersiz aralık! Başlangıç 0-65535 arasında ve bitiş başlangıçtan büyük olmalıdır.');
+            }
+        }
+
+        function setPreset(start, end) {
+            document.getElementById('startRegister').value = start;
+            document.getElementById('endRegister').value = end;
+            updateRange();
+        }
+
+        function updatePresetButtons(start, end) {
+            const buttons = document.querySelectorAll('.preset-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            buttons.forEach(button => {
+                const onclick = button.getAttribute('onclick');
+                if (onclick.includes(`setPreset(${start}, ${end})`)) {
+                    button.classList.add('active');
+                }
+            });
+        }
+
+        function setType(type) {
+            currentType = type;
+            updateTypeButtons(type);
+            createRegisters(currentStart, currentEnd);
+        }
+
+        function updateTypeButtons(type) {
+            const buttons = document.querySelectorAll('.type-button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+                if (button.onclick.toString().includes(type)) {
+                    button.classList.add('active');
+                }
+            });
+        }
+
+        function updateRegister(id, value) {
+            fetch(`/api/register/${currentType}/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ value: value })
+            });
+        }
+
+        socket.on('registerUpdate', function(data) {
+            if (data.type === currentType) {
+                const input = document.getElementById(`reg${data.register}`);
+                if (input) {
+                    if (currentType === 'coils' || currentType === 'discrete') {
+                        input.checked = Boolean(data.value);
+                        input.closest('.register').style.backgroundColor = '#e8f5e9';
+                    } else {
+                        input.value = data.value;
+                        input.closest('.register').style.backgroundColor = '#e8f5e9';
+                    }
+                    setTimeout(() => {
+                        input.closest('.register').style.backgroundColor = '';
+                    }, 500);
+                }
+            }
+        });
+
+        // İlk yükleme
+        createRegisters(currentStart, currentEnd);
+
+        // Client listesini güncelle
+        socket.on('clientUpdate', function(clients) {
+            const tbody = document.getElementById('clientsList');
+            tbody.innerHTML = '';
+            
+            if (clients.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="no-clients">Bağlı client bulunmuyor</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            clients.forEach(client => {
+                const row = document.createElement('tr');
+                const lastActive = new Date(client.lastActive);
+                row.innerHTML = `
+                    <td>${client.ip}</td>
+                    <td>${client.slaveId !== null ? client.slaveId : 'Bekliyor...'}</td>
+                    <td>${lastActive.toLocaleTimeString()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        });
+
+        // Sayfa yüklendiğinde mevcut clientları al
+        fetch('/api/clients')
+            .then(response => response.json())
+            .then(clients => {
+                socket.emit('clientUpdate', clients);
+            });
+
+        // Dark mode kontrolü
+        function toggleTheme() {
+            const html = document.documentElement;
+            const button = document.querySelector('.theme-switch-button');
+            const icon = button.querySelector('i');
+            const text = button.querySelector('span');
+            
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.removeAttribute('data-theme');
+                icon.className = 'fas fa-moon';
+                text.textContent = 'Dark Mode';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                icon.className = 'fas fa-sun';
+                text.textContent = 'Light Mode';
+            }
+            
+            // Tercihi localStorage'a kaydet
+            localStorage.setItem('theme', html.getAttribute('data-theme') || 'light');
+        }
+
+        // Sayfa yüklendiğinde tema tercihini kontrol et
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const button = document.querySelector('.theme-switch-button');
+                button.querySelector('i').className = 'fas fa-sun';
+                button.querySelector('span').textContent = 'Light Mode';
+            }
+        });
+    </script>
+</body>
+</html> 
