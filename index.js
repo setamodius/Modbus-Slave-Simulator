@@ -116,7 +116,7 @@ netServer.on('connection', function(socket) {
     connectedClients.set(socket.remoteAddress, clientInfo);
     io.emit('clientUpdate', Array.from(connectedClients.values()));
     
-    console.log(chalk.green(`Yeni Modbus client bağlandı: ${clientInfo.ip}`));
+    console.log(chalk.green(`New Modbus client connected: ${clientInfo.ip}`));
     
     socket.on('data', function() {
         clientInfo.lastActive = new Date();
@@ -126,17 +126,17 @@ netServer.on('connection', function(socket) {
     socket.on('end', function() {
         connectedClients.delete(socket.remoteAddress);
         io.emit('clientUpdate', Array.from(connectedClients.values()));
-        console.log(chalk.red(`Modbus client bağlantısı kesildi: ${clientInfo.ip}`));
+        console.log(chalk.red(`Modbus client disconnected: ${clientInfo.ip}`));
     });
     
     socket.on('error', function(err) {
-        console.error(chalk.red(`Client hatası (${clientInfo.ip}):`, err.message));
+        console.error(chalk.red(`Client error (${clientInfo.ip}):`, err.message));
     });
 });
 
 // Modbus sunucusunu başlat
 netServer.listen(502, '0.0.0.0', function() {
-    console.log(chalk.blue('Modbus TCP Sunucusu başlatıldı (Port: 502)'));
+    console.log(chalk.blue('Modbus TCP Server started (Port: 502)'));
 });
 
 // Web sunucusu ayarları
@@ -225,12 +225,12 @@ app.get('/api/clients', (req, res) => {
 
 // Hata yakalama ekleyelim
 process.on('uncaughtException', function(err) {
-    console.error(chalk.red('Beklenmeyen hata:', err));
+    console.error(chalk.red('Unexpected error:', err));
 });
 
 // Temiz kapatma için
 process.on('SIGINT', function() {
-    console.log(chalk.yellow('\nUygulama kapatılıyor...'));
+    console.log(chalk.yellow('\nApplication shutting down...'));
     process.exit();
 });
 

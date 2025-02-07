@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Modbus TCP Simülatörü</title>
+    <title>Modbus TCP Simulator</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
@@ -361,27 +361,30 @@
         </button>
     </div>
     <div class="container">
-        <h1>Modbus TCP Simülatörü</h1>
+        <h1>Modbus TCP Simulator</h1>
         
         <div class="status">
             <div class="status-indicator">
                 <div class="status-dot"></div>
-                <span>Durum: <strong id="status">Çalışıyor</strong></span>
+                <span>Status: <strong id="status">Running</strong></span>
             </div>
             <div>Port: 502</div>
         </div>
 
         <div class="clients-panel">
-            <h3>Bağlı Modbus İstemciler</h3>
+            <h3>Connected Modbus Clients</h3>
             <table class="clients-table">
                 <thead>
                     <tr>
-                        <th>IP Adresi</th>
+                        <th>IP Address</th>
                         <th>Slave ID</th>
-                        <th>Son Aktivite</th>
+                        <th>Last Activity</th>
                     </tr>
                 </thead>
                 <tbody id="clientsList">
+                    <tr>
+                        <td colspan="3" class="no-clients">No connected clients</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -394,11 +397,11 @@
                 <button class="type-button" onclick="setType('discrete')">Discrete Inputs (1xxxx)</button>
             </div>
             <div class="range-selector">
-                <label>Başlangıç:</label>
+                <label>Start:</label>
                 <input type="number" id="startRegister" class="range-input" value="0" min="0" max="65535">
-                <label>Bitiş:</label>
+                <label>End:</label>
                 <input type="number" id="endRegister" class="range-input" value="99" min="0" max="65535">
-                <button class="apply-button" onclick="updateRange()">Uygula</button>
+                <button class="apply-button" onclick="updateRange()">Apply</button>
             </div>
             <div class="preset-buttons">
                 <button class="preset-button active" onclick="setPreset(0, 99)">0-99</button>
@@ -409,10 +412,10 @@
         </div>
 
         <div class="info-panel">
-            💡 Tüm register değerlerini değiştirebilirsiniz:
+            💡 You can modify all register values:
             <ul>
-                <li>Coils ve Discrete Inputs için checkbox kullanın</li>
-                <li>Input ve Holding Registers için 0-65535 arası değer girin</li>
+                <li>Use checkboxes for Coils and Discrete Inputs</li>
+                <li>Enter values (0-65535) for Input and Holding Registers</li>
             </ul>
         </div>
 
@@ -478,7 +481,7 @@
                 createRegisters(start, end);
                 updatePresetButtons(start, end);
             } else {
-                alert('Geçersiz aralık! Başlangıç 0-65535 arasında ve bitiş başlangıçtan büyük olmalıdır.');
+                alert('Invalid range! Start must be between 0-65535 and end must be greater than start.');
             }
         }
 
@@ -555,7 +558,7 @@
             if (clients.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="3" class="no-clients">Bağlı client bulunmuyor</td>
+                        <td colspan="3" class="no-clients">No connected clients</td>
                     </tr>
                 `;
                 return;
